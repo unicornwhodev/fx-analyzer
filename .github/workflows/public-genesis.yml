@@ -1,0 +1,76 @@
+name: Public Genesis Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/public-genesis.yml
+
+permissions:
+  contents: write
+
+jobs:
+  genesis:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.genesis.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: genesis
+        name: Replace main with a clean root commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan public-genesis
+          git rm -rf --cached .
+          rm -f .github/workflows/public-genesis.yml
+          git add -A
+          git commit -m "Initial public release"
+          new_sha="$(git rev-parse HEAD)"
+          git branch -M main
+          git push origin main --force
+          echo "sha=$new_sha" >> "$GITHUB_OUTPUT"
+
+  release:
+    needs: genesis
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Install Inno Setup
+        shell: powershell
+        run: choco install innosetup -y --no-progress
+
+      - name: Build Standalone and VST3
+        shell: powershell
+        run: .\_build_all.ps1 -Configuration Release -BootstrapJuce
+
+      - name: Create Windows packages
+        shell: powershell
+        run: .\_package_release.ps1 -Configuration Release -SkipBuild
+
+      - name: Read version
+        shell: powershell
+        run: |
+          $cmake = Get-Content .\CMakeLists.txt -Raw
+          $match = [regex]::Match($cmake, 'project\([^\s\)]+\s+VERSION\s+([0-9]+(?:\.[0-9]+){0,3})')
+          if (-not $match.Success) { throw 'Unable to detect project version.' }
+          "VERSION=$($match.Groups[1].Value)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Publish GitHub Release
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $assets = Get-ChildItem .\release -File | ForEach-Object { $_.FullName }
+          if (-not $assets) { throw 'No release assets were produced.' }
+          gh release create "v$env:VERSION" @assets --title "Musique Analyzer v$env:VERSION" --notes "Initial public release. Includes Windows x64 portable package and installer."
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

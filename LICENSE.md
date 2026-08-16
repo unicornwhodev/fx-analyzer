@@ -1,38 +1,26 @@
-# Musique FX Source-Available License
+# UWdeVST Source-Available License
 
-Copyright (c) 2026 Charli Billabert / unicorn who dev.
-All rights reserved except for the permissions explicitly granted below.
+Copyright (c) 2026 Unicorn Who Dev. All rights reserved.
 
-This repository is source-available. It is **not** an open-source licence.
+This software is source-available. It is not licensed as OSI-approved open source software.
 
 ## You may
 
-- download and use official free binary releases of this plugin;
-- use audio, performances and musical works processed with the official plugin in personal, educational, commercial and non-commercial productions;
-- clone the repository to inspect the source code;
-- build the source locally for personal use, evaluation and compatibility testing;
-- modify your local copy for personal use;
-- share links to the official repository and official release pages.
+- download and use official free binary releases;
+- use the plugin to create audio, MIDI and music for personal, educational, commercial or non-commercial work;
+- inspect the source code;
+- clone and build the source locally for your own personal use;
+- modify the source locally for your own personal use.
 
-## You may not
+## You may not, without prior written permission
 
-Without prior written permission from the copyright owner, you may not:
+- redistribute, mirror, resell or repackage the official binaries;
+- publish or distribute modified binaries or derivative versions;
+- reuse, copy or integrate the source code, DSP, UI code, presets or assets in another public or commercial product;
+- use the source code for commercial software development or paid integration work;
+- remove copyright, license or attribution notices;
+- use the source, binaries, presets or assets for machine-learning training, fine-tuning or distillation.
 
-- redistribute official binaries, modified binaries or repackaged installers;
-- publish mirrors, derivative repositories or modified public distributions;
-- sell, sublicense, rent, bundle or commercially integrate the source code, assets, presets or documentation;
-- reuse the code, DSP implementations, UI assets, presets, names, logos or documentation in another product or public project;
-- remove or obscure copyright, ownership or attribution notices;
-- use this repository or its contents to train, fine-tune or distill a model or dataset.
+Third-party components remain governed by their own licenses. In particular, JUCE is not relicensed by this file.
 
-## Third-party components
-
-This project is designed to build with JUCE and may use other SDKs or toolchains. Third-party components are not relicensed by this document. You are responsible for complying with their respective licence terms when building the project.
-
-## No warranty
-
-The software, source code and documentation are provided "as is", without warranty of any kind. The copyright owner is not liable for claims, damages, data loss, host incompatibility or other liability arising from use of the project.
-
-## Permission requests
-
-For redistribution, commercial integration or source reuse, contact the owner through the official `unicorn who dev` GitHub account.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE AUTHORS SHALL NOT BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM THE SOFTWARE OR ITS USE.

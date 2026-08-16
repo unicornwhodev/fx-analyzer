@@ -1,51 +1,48 @@
 # Musique Analyzer
 
-Free Windows x64 audio analyzer from the Musique FX collection.
+Musique Analyzer is a source-available audio analysis plugin from Unicorn Who Dev.
 
-Musique Analyzer provides spectrum, spectrogram, oscilloscope, loudness and stereo analysis views in a lightweight Standalone/VST3 plugin.
+## Formats
+
+- Windows x64 Standalone
+- Windows x64 VST3
+
+## Features
+
+- Spectrum, spectrogram, oscilloscope, loudness and stereo views
+- Input/output monitoring
+- Factory presets and user presets
+- Common Musique FX interface and meters
 
 ## Download
 
-Ready-to-use builds are intended to be published on the repository **Releases** page:
-
-- Windows x64 installer
-- Windows x64 portable package containing Standalone + VST3 + factory presets
+Official Windows builds are distributed from the GitHub Releases page of this repository.
 
 ## Build from source
 
-Requirements: Windows x64, CMake 3.22+, Visual Studio 2022 with the Desktop development with C++ workload, Git and PowerShell.
+Requirements: CMake 3.22+, a C++20 compiler and JUCE 8.0.4. JUCE can be provided locally or fetched automatically by CMake.
 
 ```powershell
 .\_build_all.ps1 -Configuration Release -BootstrapJuce
 ```
 
-Or use an existing JUCE 8.0.4 checkout:
+To prepare the portable ZIP and Windows installer after a successful build:
 
 ```powershell
-.\_build_all.ps1 -Configuration Release -JuceDir C:\Dev\JUCE
+.\_package_release.ps1 -Configuration Release -SkipBuild
 ```
 
-## Create release packages
-
-```powershell
-.\_package_release.ps1 -Configuration Release -BootstrapJuce
-```
-
-This creates a portable ZIP and, when Inno Setup 6 is installed, a Windows installer in `release/`.
+The repository is self-contained: the small runtime `FXShared` headers required by this plugin are included locally.
 
 ## Repository layout
 
 - `Source/` — plugin source and assets
-- `Presets/` — factory presets
-- `FXShared/` — small shared runtime/UI headers required by this standalone repository
+- `FXShared/` — common runtime UI/audio helpers
+- `Presets/` — factory preset bank
 - `installer/` — Inno Setup definition
-
-Internal DSP test targets, QA reports and monorepo-only tooling are intentionally excluded from the public repository.
+- `_build_all.ps1` — Windows build helper
+- `_package_release.ps1` — release packaging helper
 
 ## License
 
-The plugin is free to download and use. The source is **source-available**, not open source. Personal inspection, local modification and personal builds are permitted under [LICENSE.md](LICENSE.md). Redistribution, repackaging and commercial source reuse require prior permission.
-
-JUCE is not bundled in the repository and remains subject to its own licence terms.
-
-Copyright © 2026 Charli Billabert / unicorn who dev.
+Source-available, personal-use source license. Official binaries are free to use, including for commercial music/audio production. Redistribution, commercial source reuse and derivative public products are restricted. See [LICENSE.md](LICENSE.md).

@@ -9,7 +9,11 @@ class MeterComponent : public juce::Component, private juce::Timer
 {
 public:
     MeterComponent() { startTimerHz(30); }
-    void setLevel(float left, float right) { targetL = juce::jlimit(0.0f, 1.0f, left); targetR = juce::jlimit(0.0f, 1.0f, right); }
+    void setLevel(float left, float right)
+    {
+        targetL = juce::jlimit(0.0f, 1.0f, left);
+        targetR = juce::jlimit(0.0f, 1.0f, right);
+    }
     void paint(juce::Graphics& g) override
     {
         auto b = getLocalBounds().toFloat();
@@ -19,21 +23,32 @@ public:
         drawMeterBar(g, b, smoothR);
     }
 private:
-    float targetL = 0.0f, targetR = 0.0f, smoothL = 0.0f, smoothR = 0.0f;
+    float targetL = 0.0f, targetR = 0.0f;
+    float smoothL = 0.0f, smoothR = 0.0f;
     void timerCallback() override
     {
-        constexpr float decay = 0.85f;
+        const float decay = 0.85f;
         smoothL = smoothL < targetL ? targetL : smoothL * decay;
         smoothR = smoothR < targetR ? targetR : smoothR * decay;
-        targetL *= 0.92f; targetR *= 0.92f; repaint();
+        targetL *= 0.92f;
+        targetR *= 0.92f;
+        repaint();
     }
     void drawMeterBar(juce::Graphics& g, juce::Rectangle<float> r, float level)
     {
-        g.setColour(col::meterBg); g.fillRoundedRectangle(r, 2.0f);
-        float h = r.getHeight() * level; auto active = r.removeFromBottom(h);
-        g.setColour(level < 0.6f ? col::meterLow : (level < 0.85f ? col::meterMid : col::meterHigh));
+        g.setColour(col::meterBg);
+        g.fillRoundedRectangle(r, 2.0f);
+        float h = r.getHeight() * level;
+        auto active = r.removeFromBottom(h);
+        if (level < 0.6f) g.setColour(col::meterLow);
+        else if (level < 0.85f) g.setColour(col::meterMid);
+        else g.setColour(col::meterHigh);
         g.fillRoundedRectangle(active, 2.0f);
-        if (level > 0.98f) { g.setColour(col::meterClip); g.fillRect(r.getX(), r.getY(), r.getWidth(), 3.0f); }
+        if (level > 0.98f)
+        {
+            g.setColour(col::meterClip);
+            g.fillRect(r.getX(), r.getY(), r.getWidth(), 3.0f);
+        }
     }
 };
 
@@ -44,12 +59,19 @@ public:
     void setAccent(juce::Colour c) { accentCol = c; }
     void paint(juce::Graphics& g) override
     {
-        auto b = getLocalBounds().toFloat().reduced(1.0f); auto c = isOn ? accentCol : col::ledOff;
-        g.setColour(c); g.fillEllipse(b);
-        if (isOn) { g.setColour(c.withAlpha(0.35f)); g.fillEllipse(b.expanded(3.0f)); }
+        auto b = getLocalBounds().toFloat().reduced(1.0f);
+        auto c = isOn ? accentCol : col::ledOff;
+        g.setColour(c);
+        g.fillEllipse(b);
+        if (isOn)
+        {
+            g.setColour(c.withAlpha(0.35f));
+            g.fillEllipse(b.expanded(3.0f));
+        }
     }
 private:
-    bool isOn = false; juce::Colour accentCol { col::meterHigh };
+    bool isOn = false;
+    juce::Colour accentCol { col::meterHigh };
 };
 
 namespace preset
@@ -68,6 +90,14 @@ namespace preset
             if (parent == dir) break;
             dir = parent;
         }
+        return {};
+    }
+
+    inline juce::File findFactoryBank(const juce::String& fxName)
+    {
+        auto fxDir = findFxFolder(fxName);
+        if (fxDir.isDirectory())
+            return fxDir.getChildFile("Presets").getChildFile("factory_bank.json");
         return {};
     }
 
@@ -91,9 +121,7 @@ namespace preset
     inline juce::Array<juce::var> loadAllPresets(const juce::String& fxName)
     {
         juce::Array<juce::var> out;
-        auto fxDir = findFxFolder(fxName);
-        if (fxDir.isDirectory())
-            out.addArray(loadPresetsFromBank(fxDir.getChildFile("Presets").getChildFile("factory_bank.json")));
+        out.addArray(loadPresetsFromBank(findFactoryBank(fxName)));
         auto userDir = userPresetFolder(fxName);
         if (userDir.isDirectory())
             for (auto& f : userDir.findChildFiles(juce::File::findFiles, false, "*.json"))
@@ -101,7 +129,8 @@ namespace preset
                 auto item = juce::JSON::parse(f.loadFileAsString());
                 if (auto* obj = item.getDynamicObject())
                 {
-                    if (obj->getProperty("name").toString().isEmpty()) obj->setProperty("name", f.getFileNameWithoutExtension());
+                    if (obj->getProperty("name").toString().isEmpty())
+                        obj->setProperty("name", f.getFileNameWithoutExtension());
                     out.add(item);
                 }
             }
@@ -116,7 +145,8 @@ namespace preset
         juce::DynamicObject::Ptr obj = new juce::DynamicObject();
         obj->setProperty("name", presetName);
         for (auto& id : paramIds)
-            if (auto* raw = apvts.getRawParameterValue(id)) obj->setProperty(id, raw->load());
+            if (auto* raw = apvts.getRawParameterValue(id))
+                obj->setProperty(id, raw->load());
         auto safe = presetName.retainCharacters("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-");
         if (safe.isEmpty()) safe = "Preset";
         auto ts = juce::Time::getCurrentTime().formatted("%Y%m%d_%H%M%S");
@@ -125,13 +155,16 @@ namespace preset
 
     inline void applyToAPVTS(juce::AudioProcessorValueTreeState& apvts, const juce::var& preset)
     {
-        auto* obj = preset.getDynamicObject(); if (!obj) return;
+        auto* obj = preset.getDynamicObject();
+        if (!obj) return;
         for (int i = 0; i < obj->getProperties().size(); ++i)
         {
-            auto key = obj->getProperties().getName(i); if (key == juce::Identifier("name")) continue;
+            auto key = obj->getProperties().getName(i);
+            if (key == juce::Identifier("name")) continue;
             if (auto* param = apvts.getParameter(key.toString()))
             {
-                float v = (float)obj->getProperty(key); param->setValueNotifyingHost(param->convertTo0to1(v));
+                float v = (float)obj->getProperty(key);
+                param->setValueNotifyingHost(param->convertTo0to1(v));
             }
         }
     }
@@ -139,35 +172,91 @@ namespace preset
 
 namespace ui
 {
-inline void markUnsupportedControl(juce::Button& button) { button.setEnabled(false); button.setTooltip("Unavailable in this build"); button.setAlpha(0.45f); }
+    inline void markUnsupportedControl(juce::Button& button)
+    {
+        button.setEnabled(false);
+        button.setTooltip("Unavailable in this build");
+        button.setAlpha(0.45f);
+    }
 }
 
 namespace paint
 {
-inline void header(juce::Graphics& g, int w, juce::Colour accent) { g.setColour(col::surfPrimary); g.fillRect(0, 0, w, dim::headerH); g.setColour(accent); g.fillRect(0, dim::headerH - 2, w, 2); }
-inline void presetBar(juce::Graphics& g, int w) { g.setColour(col::surfPrimary.brighter(0.04f)); g.fillRect(0, dim::headerH, w, dim::presetBarH); g.setColour(col::divider); g.drawHorizontalLine(dim::headerH + dim::presetBarH - 1, 0.0f, (float)w); }
-inline void graphArea(juce::Graphics& g, int w) { const int top = dim::headerH + dim::presetBarH; g.setColour(col::graphBg); g.fillRect(0, top, w, dim::visualH); }
-inline void graphGrid(juce::Graphics& g, int w, int cols = 32, int rows = 32)
-{
-    const int top = dim::headerH + dim::presetBarH, bot = top + dim::visualH; constexpr float pad = 16.0f;
-    g.setColour(col::gridMinor);
-    for (float x = pad; x < (float)w - pad; x += (float)cols) g.drawVerticalLine((int)x, (float)top + 8.0f, (float)bot - 8.0f);
-    for (float y = (float)top + 8.0f; y < (float)bot - 8.0f; y += (float)rows) g.drawHorizontalLine((int)y, pad, (float)w - pad);
+    inline void header(juce::Graphics& g, int w, juce::Colour accent)
+    {
+        g.setColour(col::surfPrimary);
+        g.fillRect(0, 0, w, dim::headerH);
+        g.setColour(accent);
+        g.fillRect(0, dim::headerH - 2, w, 2);
+    }
+    inline void presetBar(juce::Graphics& g, int w)
+    {
+        g.setColour(col::surfPrimary.brighter(0.04f));
+        g.fillRect(0, dim::headerH, w, dim::presetBarH);
+        g.setColour(col::divider);
+        g.drawHorizontalLine(dim::headerH + dim::presetBarH - 1, 0.0f, (float)w);
+    }
+    inline void graphArea(juce::Graphics& g, int w)
+    {
+        const int top = dim::headerH + dim::presetBarH;
+        g.setColour(col::graphBg);
+        g.fillRect(0, top, w, dim::visualH);
+    }
+    inline void graphGrid(juce::Graphics& g, int w, int cols = 32, int rows = 32)
+    {
+        const int top = dim::headerH + dim::presetBarH;
+        const int bot = top + dim::visualH;
+        const float pad = 16.0f;
+        g.setColour(col::gridMinor);
+        for (float x = pad; x < (float)w - pad; x += (float)cols)
+            g.drawVerticalLine((int)x, (float)top + 8.0f, (float)bot - 8.0f);
+        for (float y = (float)top + 8.0f; y < (float)bot - 8.0f; y += (float)rows)
+            g.drawHorizontalLine((int)y, pad, (float)w - pad);
+    }
+    inline void controls(juce::Graphics& g, int w, int numKnobs = 6)
+    {
+        const int top = dim::headerH + dim::presetBarH + dim::visualH;
+        juce::ColourGradient bgGrad(col::surfPrimary.brighter(0.03f), 0, (float)top,
+                                    col::surfPrimary.darker(0.02f), 0, (float)(top + dim::controlsH), false);
+        g.setGradientFill(bgGrad);
+        g.fillRect(0, top, w, dim::controlsH);
+        g.setColour(col::divider);
+        g.drawHorizontalLine(top, 0.0f, (float)w);
+        const int kW = w / numKnobs;
+        const int totalW = numKnobs * kW;
+        const int startX = (w - totalW) / 2;
+        juce::Rectangle<float> panel((float)startX + 10.0f, (float)top + 10.0f,
+                                     (float)totalW - 20.0f, (float)dim::controlsH - 20.0f);
+        g.setColour(col::surfSecondary.withAlpha(0.5f));
+        g.fillRoundedRectangle(panel, 8.0f);
+        g.setColour(col::border.withAlpha(0.5f));
+        g.drawRoundedRectangle(panel, 8.0f, 1.0f);
+        g.setColour(col::divider.withAlpha(0.3f));
+        for (int i = 1; i < numKnobs; ++i)
+        {
+            float x = (float)startX + i * kW;
+            g.drawVerticalLine((int)x, (float)top + 20.0f, (float)(top + dim::controlsH - 20.0f));
+        }
+    }
+    inline void footer(juce::Graphics& g, int w)
+    {
+        const int top = dim::appH - dim::footerH;
+        g.setColour(col::surfPrimary.darker(0.05f));
+        g.fillRect(0, top, w, dim::footerH);
+        g.setColour(col::divider);
+        g.drawHorizontalLine(top, 0.0f, (float)w);
+    }
+    inline void footerLabel(juce::Graphics& g, const juce::String& text, int sliderX, int sliderW)
+    {
+        const int top = dim::appH - dim::footerH;
+        g.setColour(col::textMuted);
+        g.setFont(juce::Font(juce::FontOptions{}.withHeight(10.0f).withStyle("Bold")));
+        g.drawText(text, sliderX, top + 2, sliderW, 12, juce::Justification::centred);
+    }
+    inline void outline(juce::Graphics& g, juce::Rectangle<int> bounds)
+    {
+        g.setColour(col::border);
+        g.drawRect(bounds, 1);
+    }
 }
-inline void controls(juce::Graphics& g, int w, int numKnobs = 6)
-{
-    const int top = dim::headerH + dim::presetBarH + dim::visualH;
-    juce::ColourGradient grad(col::surfPrimary.brighter(0.03f), 0, (float)top, col::surfPrimary.darker(0.02f), 0, (float)(top + dim::controlsH), false);
-    g.setGradientFill(grad); g.fillRect(0, top, w, dim::controlsH); g.setColour(col::divider); g.drawHorizontalLine(top, 0.0f, (float)w);
-    const int kW = w / numKnobs, totalW = numKnobs * kW, startX = (w - totalW) / 2;
-    juce::Rectangle<float> panel((float)startX + 10.0f, (float)top + 10.0f, (float)totalW - 20.0f, (float)dim::controlsH - 20.0f);
-    g.setColour(col::surfSecondary.withAlpha(0.5f)); g.fillRoundedRectangle(panel, 8.0f);
-    g.setColour(col::border.withAlpha(0.5f)); g.drawRoundedRectangle(panel, 8.0f, 1.0f);
-    g.setColour(col::divider.withAlpha(0.3f));
-    for (int i = 1; i < numKnobs; ++i) { float x = (float)startX + i * kW; g.drawVerticalLine((int)x, (float)top + 20.0f, (float)(top + dim::controlsH - 20.0f)); }
-}
-inline void footer(juce::Graphics& g, int w) { const int top = dim::appH - dim::footerH; g.setColour(col::surfPrimary.darker(0.05f)); g.fillRect(0, top, w, dim::footerH); g.setColour(col::divider); g.drawHorizontalLine(top, 0.0f, (float)w); }
-inline void footerLabel(juce::Graphics& g, const juce::String& text, int sliderX, int sliderW) { const int top = dim::appH - dim::footerH; g.setColour(col::textMuted); g.setFont(juce::Font(juce::FontOptions{}.withHeight(10.0f).withStyle("Bold"))); g.drawText(text, sliderX, top + 2, sliderW, 12, juce::Justification::centred); }
-inline void outline(juce::Graphics& g, juce::Rectangle<int> bounds) { g.setColour(col::border); g.drawRect(bounds, 1); }
-}
-}
+} // namespace fx

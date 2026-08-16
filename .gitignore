@@ -1,21 +1,16 @@
-# CMake / JUCE build trees
+# CMake / JUCE build outputs
 build/
 build-*/
 build_*/
-JUCE/
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 compile_commands.json
-CTestTestfile.cmake
-Testing/
 _deps/
 *.ninja
 .ninja_*
 Makefile
 install_manifest.txt
-
-# Generated binaries / IDE files
 *_artefacts/
 JuceLibraryCode/
 *.sln
@@ -38,7 +33,13 @@ JuceLibraryCode/
 *.exe
 *.log
 
-# Public packaging output
+# Local dependency cache / release output
+JUCE/
 release/
 installer/output/
-installer/staging/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

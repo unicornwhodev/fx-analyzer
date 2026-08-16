@@ -1,7 +1,8 @@
-# CMake build trees
+# CMake / JUCE build trees
 build/
 build-*/
 build_*/
+JUCE/
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
@@ -14,7 +15,7 @@ _deps/
 Makefile
 install_manifest.txt
 
-# Generated binaries and IDE files
+# Generated binaries / IDE files
 *_artefacts/
 JuceLibraryCode/
 *.sln
@@ -36,3 +37,8 @@ JuceLibraryCode/
 *.app
 *.exe
 *.log
+
+# Public packaging output
+release/
+installer/output/
+installer/staging/

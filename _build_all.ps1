@@ -1,42 +1,29 @@
 param(
-    [string]$Configuration = "Release",
-    [string]$BuildDir = "build",
-    [string]$JuceDir = "",
+    [ValidateSet('Debug','Release')][string]$Configuration = 'Release',
+    [string]$BuildDir = 'build',
+    [string]$JuceDir = '',
     [switch]$BootstrapJuce
 )
 
-$ErrorActionPreference = "Stop"
-Set-StrictMode -Version Latest
-$repoRoot = Split-Path -Parent $PSCommandPath
-$cmakeFile = Join-Path $repoRoot "CMakeLists.txt"
-$cmakeText = Get-Content -LiteralPath $cmakeFile -Raw
-$projectMatch = [regex]::Match($cmakeText, 'project\(([^\s\)]+)')
-if (-not $projectMatch.Success) { throw "Unable to detect CMake project target." }
-$target = $projectMatch.Groups[1].Value
+$ErrorActionPreference = 'Stop'
+$root = Split-Path -Parent $MyInvocation.MyCommand.Path
+$build = Join-Path $root $BuildDir
 
-$resolvedJuce = ""
-if ($JuceDir) { $resolvedJuce = (Resolve-Path -LiteralPath $JuceDir).Path }
-elseif ($BootstrapJuce) {
-    $local = Join-Path $repoRoot "JUCE"
-    if (-not (Test-Path (Join-Path $local "CMakeLists.txt"))) {
-        & git clone --depth 1 --branch 8.0.4 --recurse-submodules https://github.com/juce-framework/JUCE.git $local
-        if ($LASTEXITCODE -ne 0) { throw "JUCE bootstrap failed." }
-    }
-    $resolvedJuce = (Resolve-Path -LiteralPath $local).Path
+if ($JuceDir) {
+    $env:JUCE_DIR = (Resolve-Path $JuceDir).Path
+} elseif ($BootstrapJuce -and -not (Test-Path (Join-Path $root 'JUCE\CMakeLists.txt'))) {
+    git clone --depth 1 --branch 8.0.4 https://github.com/juce-framework/JUCE.git (Join-Path $root 'JUCE')
 }
 
-$buildPath = if ([System.IO.Path]::IsPathRooted($BuildDir)) { $BuildDir } else { Join-Path $repoRoot $BuildDir }
-$args = @("-S", $repoRoot, "-B", $buildPath, "-Wno-dev")
-if ($resolvedJuce) { $args += "-DUWDEVST_JUCE_DIR=$resolvedJuce" }
-& cmake @args
-if ($LASTEXITCODE -ne 0) { throw "CMake configuration failed." }
+cmake -S $root -B $build -A x64
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+cmake --build $build --config $Configuration --parallel
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-foreach ($buildTarget in @("${target}_Standalone", "${target}_VST3")) {
-    & cmake --build $buildPath --config $Configuration --target $buildTarget
-    if ($LASTEXITCODE -ne 0) { throw "Build failed for $buildTarget." }
-}
+$exe = Get-ChildItem $build -Recurse -Filter '*.exe' | Where-Object { $_.FullName -match '_artefacts' } | Select-Object -First 1
+$vst = Get-ChildItem $build -Recurse -Filter '*.vst3' | Where-Object { $_.FullName -match '_artefacts' } | Select-Object -First 1
+if (-not $exe) { throw 'Standalone executable was not produced.' }
+if (-not $vst) { throw 'VST3 bundle was not produced.' }
 
-$artifactRoot = Join-Path $buildPath "${target}_artefacts\$Configuration"
-if (-not (Get-ChildItem (Join-Path $artifactRoot "Standalone") -File -Filter *.exe -ErrorAction SilentlyContinue | Select-Object -First 1)) { throw "Standalone artifact missing." }
-if (-not (Get-ChildItem (Join-Path $artifactRoot "VST3") -Directory -Filter *.vst3 -ErrorAction SilentlyContinue | Select-Object -First 1)) { throw "VST3 artifact missing." }
-Write-Host "Build completed: $target ($Configuration)"
+Write-Host "Standalone: $($exe.FullName)"
+Write-Host "VST3: $($vst.FullName)"

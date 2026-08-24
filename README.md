@@ -1,48 +1,65 @@
 # Musique Analyzer
 
-Musique Analyzer is a source-available audio analysis plugin from Unicorn Who Dev.
+Musique Analyzer is a Windows audio-analysis companion for mixing, sound design and final checks. It provides spectrum, spectrogram, oscilloscope, loudness and stereo-field views in a Standalone application or VST3 plug-in.
 
 ## Formats
 
 - Windows x64 Standalone
 - Windows x64 VST3
 
-## Features
+## Install a release
 
-- Spectrum, spectrogram, oscilloscope, loudness and stereo views
-- Input/output monitoring
-- Factory presets and user presets
-- Common Musique FX interface and meters
+1. Download the Windows installer or portable ZIP from this repository's Releases page.
+2. Run the installer, or extract the ZIP and copy the complete .vst3 bundle to a VST3 location scanned by your host.
+3. Rescan plug-ins in the host, then insert the effect on the track or bus you want to process.
 
-## Download
+## What you can monitor
 
-Official Windows builds are distributed from the GitHub Releases page of this repository.
+- Spectrum and spectrogram detail for tonal balance and transient content.
+- Oscilloscope timing, trigger and persistence controls.
+- Loudness history, hold and gate controls for session-level monitoring.
+- Stereo field, balance, correlation and decay controls for width checks.
+- Input and output monitoring workflows, selected through the factory presets.
+
+Use Hold or Freeze when you need to compare a moment in the signal with live audio. Display settings affect the analysis view; they do not replace your host's gain staging or export checks.
+
+## Factory presets
+
+The included bank contains 14 starting points: input and output monitoring, spectrum and sweep focus, spectrogram, oscilloscope, loudness and stereo/correlation views. Select a preset first, then adjust the analysis range, smoothing, visual resolution and the controls specific to the active view.
 
 ## Build from source
 
-Requirements: CMake 3.22+, a C++20 compiler and JUCE 8.0.4. JUCE can be provided locally or fetched automatically by CMake.
+Requirements: Windows x64, PowerShell, Git, CMake 3.22 or later, Visual Studio 2022 (or Build Tools) with Desktop development with C++, and JUCE 8.0.4.
 
-```powershell
+~~~powershell
 .\_build_all.ps1 -Configuration Release -BootstrapJuce
-```
+~~~
 
-To prepare the portable ZIP and Windows installer after a successful build:
+To use an existing JUCE 8.0.4 checkout:
 
-```powershell
-.\_package_release.ps1 -Configuration Release -SkipBuild
-```
+~~~powershell
+.\_build_all.ps1 -Configuration Release -JuceDir C:\Dev\JUCE
+~~~
 
-The repository is self-contained: the small runtime `FXShared` headers required by this plugin are included locally.
+The build produces Standalone and VST3 artefacts.
 
-## Repository layout
+## Package a local build
 
-- `Source/` — plugin source and assets
-- `FXShared/` — common runtime UI/audio helpers
-- `Presets/` — factory preset bank
-- `installer/` — Inno Setup definition
-- `_build_all.ps1` — Windows build helper
-- `_package_release.ps1` — release packaging helper
+~~~powershell
+.\_package_release.ps1 -Configuration Release -BootstrapJuce
+~~~
 
-## License
+The script creates a portable Windows package and, when Inno Setup 6 is installed, a Windows installer. Use the SkipInstaller option when an installer is not required.
 
-Source-available, personal-use source license. Official binaries are free to use, including for commercial music/audio production. Redistribution, commercial source reuse and derivative public products are restricted. See [LICENSE.md](LICENSE.md).
+## Repository contents
+
+| Path | Purpose |
+| --- | --- |
+| Source/ | Plug-in source, effect engines and visual assets |
+| Presets/ | Factory preset bank |
+| FXShared/ | Local shared UI and audio helpers required by this plug-in |
+| installer/ | Windows installer definition |
+
+## Licence and support
+
+This project is source-available, not open source. See [LICENSE.md](LICENSE.md) for the permitted use of source and binaries. For a released-build issue, open an issue with the Windows version, host name/version, plug-in format and steps to reproduce it.

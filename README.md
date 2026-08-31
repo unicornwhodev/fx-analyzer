@@ -1,3 +1,32 @@
+<!-- UWDEVST-SHOWCASE:START -->
+<p align="center">
+  <img src="docs/social-preview.jpg" width="960" alt="Musique Analyzer — UWdeVST collection artwork" />
+</p>
+
+<h1 align="center">Musique Analyzer</h1>
+
+<p align="center"><strong>See what you hear.</strong><br />Spectrum, loudness and stereo image: a visual companion for informed mix decisions.</p>
+
+<p align="center">
+  <a href="https://unicorsoundengine.com/en/plugins/fx-analyzer#listen">Listen</a> ·
+  <a href="https://unicorsoundengine.com/en/plugins/fx-analyzer#install">Download</a> ·
+  <a href="https://unicorsoundengine.com/en">Full collection</a> ·
+  <a href="https://github.com/unicornwhodev/fx-analyzer/issues/new/choose">Report an issue</a>
+</p>
+
+**Windows x64 · VST3 · Standalone**
+
+- Spectrum and spectrogram
+- Oscilloscope and loudness
+- Stereo field view
+
+> **Publicly viewable source — proprietary license.** Official binaries are free for individuals and organizations with no more than EUR 100,000 in worldwide consolidated gross revenue. Modification and redistribution are not permitted. Professional use above that threshold requires a paid written license. [Read the license](https://unicorsoundengine.com/en/license) or [request a commercial license](https://unicorsoundengine.com/en/contact).
+
+The license included with each tagged release governs that release. The v1.0 license applies prospectively and does not withdraw permissions already granted on earlier releases.
+<!-- UWDEVST-SHOWCASE:END -->
+
+---
+
 # Musique Analyzer
 
 Musique Analyzer is a Windows audio-analysis companion for mixing, sound design and final checks. It provides spectrum, spectrogram, oscilloscope, loudness and stereo-field views in a Standalone application or VST3 plug-in.
@@ -62,4 +91,4 @@ The script creates a portable Windows package and, when Inno Setup 6 is installe
 
 ## Licence and support
 
-This project is source-available, not open source. See [LICENSE.md](LICENSE.md) for the permitted use of source and binaries. For a released-build issue, open an issue with the Windows version, host name/version, plug-in format and steps to reproduce it.
+The source code is publicly viewable under a proprietary license. Viewing and private compilation of strictly unchanged source are permitted; modification and redistribution are not. See [LICENSE.md](LICENSE.md). For a released-build issue, open an issue with the Windows version, host name/version, plug-in format and steps to reproduce it.
